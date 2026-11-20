@@ -66,6 +66,10 @@ function installNghdl
 
     echo "Installing NGHDL..........................."
     unzip -o nghdl.zip
+    sed -i 's/^\( *\)"24.04")/\1"24.04"|"26.04")/' nghdl/install-nghdl.sh
+    sed -i 's/libcanberra-gtk-module/libcanberra-gtk3-module/g' nghdl/install-nghdl-scripts/*.sh nghdl/install-nghdl.sh
+    sed -i 's/apt install -y llvm llvm-dev/apt install -y llvm-18 llvm-18-dev clang-18/; s#--with-llvm-config=/usr/bin/llvm-config#--with-llvm-config=/usr/lib/llvm-18/bin/llvm-config#' nghdl/install-nghdl-scripts/*.sh
+    sed -i 's#\.\./configure --enable-xspice#../configure CFLAGS="-g -O2 -std=gnu17" --enable-xspice#' nghdl/install-nghdl-scripts/*.sh
     cd nghdl/
     chmod +x install-nghdl.sh
 
@@ -92,6 +96,7 @@ function installSky130Pdk
     # Remove any previous sky130-fd-pdr instance, if any
     sudo rm -rf /usr/share/local/sky130_fd_pr
     #installing sky130
+    sudo mkdir -p /usr/share/local && sudo chown -R $USER:$USER /usr/share/local
     volare enable --pdk sky130 --pdk-root /usr/share/local/ 0fe599b2afb6708d281543108caf8310912f54af
     # Copy SKY130 library
     echo "Copying SKY130 PDK........................."
@@ -163,20 +168,20 @@ function installKicad
         fi
 
     else
-        kicadppa="kicad/kicad-6.0-releases"
+        : # KiCad 6.0 PPA disabled: no resolute build
     fi
 
-    # Check if the PPA is already added
-    if ! grep -q "^deb .*${kicadppa}" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
-        echo "Adding KiCad PPA to local apt repository: $kicadppa"
-        sudo add-apt-repository -y "ppa:$kicadppa"
-        sudo apt-get update
-    else
-        echo "KiCad PPA is already present in sources."
-    fi
+#    # Check if the PPA is already added
+#    if ! grep -q "^deb .*${kicadppa}" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+#        echo "Adding KiCad PPA to local apt repository: $kicadppa"
+#        sudo add-apt-repository -y "ppa:$kicadppa"
+#        sudo apt-get update
+#    else
+#        echo "KiCad PPA is already present in sources."
+#    fi
 
     # Install KiCad packages
-    sudo apt-get install -y --no-install-recommends kicad kicad-footprints kicad-libraries kicad-symbols kicad-templates
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends kicad kicad-footprints kicad-libraries kicad-symbols kicad-templates
 
     echo "KiCad installation completed successfully!"
 }
@@ -196,7 +201,7 @@ function installDependency
     trap error_exit ERR
     
     echo "Instaling virtualenv......................."
-    sudo apt install python3-virtualenv
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y python3-virtualenv
    
     echo "Creating virtual environment to isolate packages "
     virtualenv $config_dir/env
@@ -208,23 +213,23 @@ function installDependency
     pip install --upgrade pip
     
     echo "Installing Xterm..........................."
-    sudo apt-get install -y xterm
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xterm
     
     echo "Installing Psutil.........................."
-    sudo apt-get install -y python3-psutil
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-psutil
     
     echo "Installing PyQt5..........................."
-    sudo apt-get install -y python3-pyqt5
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pyqt5
 
     echo "Installing Matplotlib......................"
-    sudo apt-get install -y python3-matplotlib
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-matplotlib
 
     echo "Installing Setuptools..................."
-    sudo apt-get install -y python3-setuptools
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-setuptools
 
     # Install NgVeri Depedencies
     echo "Installing Pip3............................"
-    sudo apt install -y python3-pip
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y python3-pip
 
     echo "Installing Watchdog........................"
     pip3 install watchdog
@@ -249,7 +254,7 @@ function installDependency
     pip3 install PyQt5  
 
     echo "Installing volare"
-    sudo apt-get xz-utils
+    sudo apt-get install -y xz-utils
     pip3 install volare
 }
 
